@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 public class StartClient implements Runnable{
 	String portno=null;
     String directoryName=null;
@@ -32,7 +31,6 @@ public class StartClient implements Runnable{
 		try   
 		{    
 			ServerInterface index = (ServerInterface) Naming.lookup("index_server");    
-		   
 			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 			String line;
 			System.out.println("Please enter the peer ID associated with this new client: ");
@@ -41,7 +39,7 @@ public class StartClient implements Runnable{
 			String[] store = directoryList.list();
 			int counter=0;
 			while(counter<store.length){
-				File currentFile = new File(store[counter]);
+			File currentFile = new File(store[counter]);
 				try {
 					index.registerFiles(peerID, currentFile.getName(),portno,directoryName);
 				} catch (RemoteException ex) {
@@ -52,45 +50,66 @@ Logger.getLogger(StartClient.class.getName()).log(Level.SEVERE, null, ex);
 			// method to search for the file
 			ArrayList<FileDetails> arr = new ArrayList<FileDetails>();
 			System.out.println("Please enter the file you would like to download: ");
-			//while((fileTobeSearched=br.readLine())!=null){
 			fileTobeSearched = br.readLine();
 			arr=index.search(fileTobeSearched);
 			while(arr.size() == 0){
-				System.out.print("File not found. Try Again");
+				System.out.println("File not found. Try Again");
 				fileTobeSearched = br.readLine();
 				arr=index.search(fileTobeSearched);
-				break;
 			}
 			System.out.println("The following PeerIDs contain the file: ");
 			for(int i = 0; i < arr.size(); i++) {
 				System.out.println(arr.get(i).peerId);
-				System.out.println("Please enter the ID for the peer you would like to download from: ");
+			}
+			System.out.println("Please enter the ID for the peer you would like to download from: ");
+			peerID= br.readLine();
+            downloadFromPeer(peerID,arr);
+            String nextMove = null;
+            System.out.println("Press any key to start new download, type 'exit' to quit");
+            nextMove = br.readLine();
+            while(nextMove != null){
+            	if(nextMove.equals("exit")){
+            		System.out.println("Exiting...");
+            		break;
+            	}
+            	ArrayList<FileDetails> next_arr = new ArrayList<FileDetails>();
+				System.out.println("Please enter the file you would like to download: ");
+				fileTobeSearched = br.readLine();
+				next_arr=index.search(fileTobeSearched);
+				while(next_arr.size() == 0){
+					System.out.println("File not found. Try Again");
+					fileTobeSearched = br.readLine();
+					next_arr=index.search(fileTobeSearched);
+				}
+				System.out.println("The following PeerIDs contain the file: ");
+				for(int i = 0; i < arr.size(); i++) {
+					System.out.println(next_arr.get(i).peerId);
+					}
+				System.out.println("Please enter the ID for the peer you would like to download from: ");\
 				peerID= br.readLine();
-                downloadFromPeer(peerID,arr);
-            }
-                
+                downloadFromPeer(peerID,next_arr);
+                System.out.print("Press any key to start new download, press x to quit");
+            	nextMove = br.readLine();
+            }   
 			}	catch (Exception e){
 				System.out.println("ClientInterface exception: " + e);
 			}       
 }
 public void downloadFromPeer(String peerid,ArrayList<FileDetails> arr) throws NotBoundException, RemoteException, MalformedURLException, IOException{
   //get port
-  String portForAnotherClient=null;
-  String sourceDir=null;
-  for(int i=0;i<arr.size();i++){
-      if(peerid.equals(arr.get(i).peerId)){
+	String portForAnotherClient=null;
+	String sourceDir=null;
+	for(int i=0;i<arr.size();i++){
+      	if(peerid.equals(arr.get(i).peerId)){
           portForAnotherClient=arr.get(i).portNumber;
           sourceDir=arr.get(i).SourceDirectoryName;
-      }
-  }
-  ClientInterface peerServer = (ClientInterface) Naming.lookup("rmi://localhost:"+portForAnotherClient+"/FileServer");
-
-  String source = sourceDir+"//"+fileTobeSearched;
-        //directory where file will be copied
-       String target =directoryName;
-      
-        InputStream is = null;
-    OutputStream os = null;
+	}
+	}
+	ClientInterface peerServer = (ClientInterface) Naming.lookup("rmi://localhost:"+portForAnotherClient+"/FileServer");
+	String source = sourceDir+"//"+fileTobeSearched;//directory where file will be copied
+	String target =directoryName;
+	InputStream is = null;
+   	 OutputStream os = null;
     try {
         File srcFile = new File(source);
         File destFile = new File(target);
@@ -99,10 +118,8 @@ public void downloadFromPeer(String peerid,ArrayList<FileDetails> arr) throws No
         	System.out.println("Could not find file.");
             destFile.createNewFile();
         }
-        
         System.out.println("downloading file... ");
         is = new FileInputStream(srcFile);
-        
         os = new FileOutputStream(target+"//"+srcFile.getName());
         byte[] buffer = new byte[1024];
         int length;
@@ -120,26 +137,25 @@ public void downloadFromPeer(String peerid,ArrayList<FileDetails> arr) throws No
         os.close();
     }
   }
+  
+
+
 public static void main(String [] args) throws IOException{
-    
      BufferedReader inp = new BufferedReader(new InputStreamReader(System.in));
      String portno=null;
      System.out.println("Please enter a port number to register new Peer: ");
      portno=inp.readLine();
-     
      System.out.println("Enter the file directory path: ");
      String directoryName = inp.readLine();
-          
      try{
-         LocateRegistry.createRegistry(Integer.parseInt(portno)); 
-       ClientInterface fi = new FileImpl(directoryName);
-         Naming.rebind("rmi://localhost:"+portno+"/FileServer", fi);
+     	LocateRegistry.createRegistry(Integer.parseInt(portno));
+     	ClientInterface fi = new FileImpl(directoryName);
+     	Naming.rebind("rmi://localhost:"+portno+"/FileServer", fi);
  } catch(Exception e) {
          System.err.println("FileServer exception: "+ e.getMessage());
          e.printStackTrace();
       }
 	new StartClient(portno,directoryName).run();
-       
-     
 	}
+
 }
