@@ -5,7 +5,7 @@ Compilation:
 javac -d {working directory} filename.java
 
 example:
-javac -d /home/seed/PA1 ClientInterface.java IndexInterface.java StartClient.java FileDetails.java IndexServer.java StartServer.java FileImpl.java ServerInterface.java
+javac ClientInterface.java ConcurrencyTest.java FileConstructor.java FileFunction.java FileInterface.java IndexServer.java PeerClient.java ServerInterface.java StartClient.java StartServer.java 
 
 Start the server:
 
