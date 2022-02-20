@@ -6,7 +6,7 @@ javac -d {working directory} filename.java
 
 example:
 
-javac ClientInterface.java ConcurrencyTest.java FileConstructor.java FileFunction.java FileInterface.java IndexServer.java PeerClient.java ServerInterface.java StartClient.java StartServer.java 
+javac ClientInterface.java ConcurrencyTest.java FileConstructor.java FileFunction.java FileInterface.java IndexServer.java PeerClient.java ServerInterface.java StartClient.java StartServer.java seqRequests.java
 
 Start the server:
 
